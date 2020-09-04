@@ -1,4 +1,4 @@
-import sys,subprocess,os,zipfile
+import sys,subprocess,os,zipfile,shutil,json
 importSuccess = False
 ignoreUpdates=False
 latestzip="lastest.zip"
@@ -12,18 +12,21 @@ except ImportError:
 	install_package("requests")
 print("Checking for updates...")
 data = requests.get("https://github.com/Wha-The/remote-desktop/archive/master.zip").content
-lastest_update = os.path.exists(latestzip)and open(latestzip,'rb')
+lastest_update = os.path.exists(latestzip)and open(latestzip,'rb').read()
 if data!=lastest_update:
 	chooseToUpdate=not ignoreUpdates and raw_input("Update found, would you like to install it? (y/n)").lower()=="y"
 	if chooseToUpdate:
-		open(lastestzip,'wb').write(data)
-		with zipfile.ZipFile(lastestzip, 'r') as zip_ref:
+		open(latestzip,'wb').write(data)
+		with zipfile.ZipFile(latestzip, 'r') as zip_ref:
 			zip_ref.extractall(".")
-		print("Updated! ")
-		os.execl(sys.executable, os.path.abspath(__file__), *sys.argv) 
+		directories = [name for name in os.listdir(".") if os.path.isdir(name)]
+		if len(directories)>=1:
+			for i in os.listdir(os.path.join(".",directories[0])):
+				shutil.move(os.path.join(os.path.join(".",directories[0]),i),os.path.join(".",i))
+			os.rmdir(directories[0])
+
+		print("Updated, please restart RD")
 		quit()
-
-
 while not importSuccess:
 	try:import Server,Client
 	except ImportError as e:
@@ -37,7 +40,7 @@ while not importSuccess:
 			if status_code != 0:raise FatalError("Cannot install dependent module "+package+" (Error: pip return status != 0)")
 			else:print "Sucessfully installed package "+package
 	else:importSuccess = True
-print("-------------------------------------------------------------------")
+print("--------------------------------------------------------------------")
 if (len(sys.argv)>=2 and sys.argv[1]or raw_input("Run (S)erver/(C)lient? ")).lower()=="s":
 	print("Launching Server...")
 	Server.Run()
