@@ -1,15 +1,23 @@
 import sys,subprocess,os,zipfile,shutil,json
 importSuccess = False
-ignoreUpdates=False
+ignoreUpdates=True
 latestzip="lastest.zip"
 
 class FatalError(Exception):pass
 def install_package(package):return subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 specialpackagenames = {"wx":"wxpython","pil":"pillow",}
 try:
-	import requests
+	import requests,socket
 except ImportError:
 	install_package("requests")
+	install_package("socket")
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+host = s.getsockname()[0]
+
+print "Your IP is",host
+
 print("Checking for updates...")
 data = requests.get("https://github.com/Wha-The/remote-desktop/archive/master.zip").content
 lastest_update = os.path.exists(latestzip)and open(latestzip,'rb').read()
@@ -41,6 +49,7 @@ while not importSuccess:
 			else:print "Sucessfully installed package "+package
 	else:importSuccess = True
 print("--------------------------------------------------------------------")
+print "Your IP is",host
 if (len(sys.argv)>=2 and sys.argv[1]or raw_input("Run (S)erver/(C)lient? ")).lower()=="s":
 	print("Launching Server...")
 	Server.Run()
