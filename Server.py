@@ -23,7 +23,7 @@ keycodes = {
 
 def send_msg(sock, msg,bucket=None):
     # Prefix each message with a 4-byte length (network byte order)
-    msg = struct.pack('I>', len(msg)) + msg
+    msg = struct.pack('>I, len(msg)) + msg
     try:
     	sock.sendall(msg)
     except socket.error:
